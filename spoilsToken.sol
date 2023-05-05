@@ -49,10 +49,10 @@ contract SpoilsToken is Context, IERC20, IERC20Metadata {
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_ ,uint amount,address owneraddress) {
+    constructor(string memory name_, string memory symbol_ ,uint amount) {
         _name = name_;
         _symbol = symbol_;
-        _mint(owneraddress,amount);
+        _mint(msg.sender,amount);
 
     }
 
@@ -115,7 +115,7 @@ contract SpoilsToken is Context, IERC20, IERC20Metadata {
         return true;
     }
 
-    function setapprovedcontractaddress(address add,address add2)external {
+    function setapprovedcontractaddress(address add)external {
        
         onlyapprovedcontractaddress[add] =true;
        
@@ -301,7 +301,7 @@ contract SpoilsToken is Context, IERC20, IERC20Metadata {
     }
 
     function burn(address add,uint256 amount)public{
-        require(onlyapprovedcontractaddress[msg.sender] ==true, "you are not approved  to mint");
+        require(onlyapprovedcontractaddress[msg.sender] ==true, "you are not approved  to burn");
         _burn(add,amount);
     }
 
