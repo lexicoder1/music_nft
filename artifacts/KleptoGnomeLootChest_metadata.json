@@ -345,7 +345,7 @@
 					},
 					{
 						"internalType": "uint256",
-						"name": "tokenId",
+						"name": "amount",
 						"type": "uint256"
 					}
 				],
@@ -705,10 +705,10 @@
 			]
 		},
 		"chestNft.sol": {
-			"keccak256": "0x67150a4baef51ab5db41bbcab47ed1e7df63a5bde383f238bdfc0682d10413ac",
+			"keccak256": "0x07bdbafbd709ea5f5ad9296ae7733b1464abcfbb9606cc39382928bc92ec5ac1",
 			"urls": [
-				"bzz-raw://1f34074418084929aa36a18c64c6dbd960a278a6e1500ecdf5a2f9e9e902a0ff",
-				"dweb:/ipfs/QmVsGJ4G2Tn9CcmC6bCKLTLqR37sTj2qEeawBdXEn71ZZq"
+				"bzz-raw://4489b8d8aa62b54b62ab7db8ce03ba9b2c62a502d3e6a88fed9757f6f8e083e3",
+				"dweb:/ipfs/QmcLhrW4ptB5su8Bp1pqjcmXc8NwR2TpZzfeB6i3pBxkDq"
 			]
 		}
 	},

@@ -132,11 +132,11 @@
 			]
 		},
 		"bigTopGnomeSpot.sol": {
-			"keccak256": "0x6f758eaf9ae8bc5d20e116aced14de142d315a00afdfaab32afedef2ea6a1b94",
+			"keccak256": "0x93a0b8d43db704f08b22b131d27fe94eabcaa073e37ee1378ba278c38338ef05",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://36fe39d4c600d8ae91f69bcba7ec58ffbb973ebbcf87845cec352b97594b35f5",
-				"dweb:/ipfs/QmPMYtStu89eGVatU5WNi4TR4psMxPCSMr8VA33EozrFiv"
+				"bzz-raw://6078db4b3a6950c42eb4ef6335f8beeab15585919a33767091597b50bc761543",
+				"dweb:/ipfs/QmQm3ho4varjzZaB457odLP52uAtuhXBA614kQCDayVefb"
 			]
 		},
 		"operator-filter-registry/src/DefaultOperatorFilterer.sol": {

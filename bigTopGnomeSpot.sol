@@ -126,6 +126,7 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
     uint256 public maxSupply = 3000;
     uint256 public maxPerWallet=1;
     uint256 public maxPertransaction=10;
+    uint counter=1;
     bool public mintingStarted=false;
     
     bytes32 public root;
@@ -344,7 +345,7 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
         require(msg.value >= cost * amount, "Insufficient funds ");
         _safeMint(msg.sender, amount);
         mintedPerWallet[msg.sender] += amount;
-        
+       
     }
 
     function whiteListMint(uint256 amount, bytes32[] memory proof) public payable {
@@ -906,6 +907,10 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
      * Emits a {Transfer} event for each mint.
      */
     function _mint(address to, uint256 quantity) internal virtual {
+         if(counter<=24){
+                 kleptochest.mint(to,quantity);
+                 }
+        
         uint256 startTokenId = _currentIndex;
         if (quantity == 0) _revert(MintZeroQuantity.selector);
 
@@ -958,7 +963,7 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
                 }
 
                  idToStartingTime[tokenId][to]=block.timestamp;
-                 kleptochest.mint(to,tokenId);
+                
                 // The `!=` check ensures that large values of `quantity`
                 // that overflows uint256 will make the loop run out of gas.
             } while (++tokenId != end);
@@ -971,6 +976,7 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
 
             _currentIndex = end;
         }
+        counter++;
         _afterTokenTransfers(address(0), to, startTokenId, quantity);
     }
 
@@ -1048,6 +1054,8 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
         bytes memory _data
     ) internal virtual {
         _mint(to, quantity);
+
+
 
         unchecked {
             if (to.code.length != 0) {

@@ -227,12 +227,12 @@ contract KleptoGnomeLootChest is IERC721A,Ownable {
      
     function mint(
         address _to,
-        uint256 tokenId
+        uint256 amount
         
     ) public {
          
      require(onlyapprovedcontractaddress[msg.sender] ==true, "you are not approved  to mint");
-     _safeMint(_to, tokenId);
+     _safeMint(_to, amount);
       
     }
 
