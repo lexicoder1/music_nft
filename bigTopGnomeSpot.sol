@@ -6,6 +6,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
 
 /**
  * @dev Interface of ERC721 token receiver.
@@ -28,23 +31,11 @@ interface Ikleptochest{
      function mint(address _to,uint256 tokenId) external;
 }
 
-/**
- * @title ERC721A
- *
- * @dev Implementation of the [ERC721](https://eips.ethereum.org/EIPS/eip-721)
- * Non-Fungible Token Standard, including the Metadata extension.
- * Optimized for lower gas during batch mints.
- *
- * Token IDs are minted in sequential order (e.g. 0, 1, 2, 3, ...)
- * starting from `_startTokenId()`.
- *
- * Assumptions:
- *
- * - An owner cannot have more than 2**64 - 1 (max value of uint64) of supply.
- * - The maximum token ID cannot exceed 2**256 - 1 (max value of uint256).
- */
-contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
+
+contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsumerBaseV2, ConfirmedOwner{
     // Bypass for a `--via-ir` bug (https://github.com/chiru-labs/ERC721A/pull/364).
+    event RequestSent(uint256 requestId, uint32 numWords);
+    event RequestFulfilled(uint256 requestId, uint256[] randomWords);
     struct TokenApprovalRef {
         address value;
     }
@@ -118,24 +109,62 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
     string public baseURI_;
     string public uriSuffix = "";
     string public contractURI ;
-    IspoilToken spoilToken;
-    Ikleptochest kleptochest;
+    
     uint256 public cost = 0.03 ether;
     uint256 public whiteListCost = 0.02 ether;
-    uint256 public rate = 10;
+    uint256 public rate = 1;
+    uint256 public specialRate = 10;
     uint256 public maxSupply = 3000;
-    uint256 public maxPerWallet=1;
+    uint256 public maxPerWallet=10;
     uint256 public maxPertransaction=10;
     uint counter=1;
+    uint64 s_subscriptionId;
+
+   
+    uint256[] public requestIds;
+    uint256 public lastRequestId;
+    uint32 callbackGasLimit = 100000;
+
+   
+    uint16 requestConfirmations = 3;
+
+    uint randomNum;
+    uint chestmintedamount;
+    uint32 numWords = 1;
+    IspoilToken spoilToken;
+    Ikleptochest kleptochest;
     bool public mintingStarted=false;
+    bool alreadyRequested;
+    bool randomNumReady;
     
-    bytes32 public root;
+   
     address companyWallet= 0xebE448F7347DcF4cf7872e82C6F11880aFd704C0;
     address communityWallet=0xF111053338a340bBabde350702E43254C201A4Ed;
     address devTeamWallet= 0x665b5372fAf9e044E0e0fE8CbFD11dC916AFB118;
     
-    mapping(address => uint256) public mintedPerWallet;
-    mapping(uint => mapping(address => uint)) private idToStartingTime;
+    
+    
+
+    struct RequestStatus {
+        bool fulfilled; // whether the request has been successfully fulfilled
+        bool exists; // whether a requestId exists
+        uint256[] randomWords;
+    }
+    mapping(uint256 => RequestStatus)
+        public s_requests; /* requestId --> requestStatus */
+    VRFCoordinatorV2Interface COORDINATOR;
+
+   
+   
+
+   
+    bytes32 keyHash =
+        0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c;
+    bytes32 public root;
+  
+   
+    
+    
     
     // Mapping from token ID to ownership details
     // An empty struct value does not necessarily mean the token is unowned.
@@ -164,14 +193,19 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-    // =============================================================
-    //                          CONSTRUCTOR
-    // =============================================================
+    mapping(address => uint256) public mintedPerWallet;
+    mapping(uint => mapping(address => uint)) private idToStartingTime;
+    mapping(uint=>bool) specialidcheck;
 
-    constructor() {
+    constructor(uint64 subscriptionId) VRFConsumerBaseV2(0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625)
+        ConfirmedOwner(msg.sender) {
         _name = "BigTopGnomeSpot";
         _symbol = "BigTopGnomeSpot";
         _currentIndex = _startTokenId();
+         COORDINATOR = VRFCoordinatorV2Interface(
+            0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625
+        );
+        s_subscriptionId = subscriptionId;
     }
 
     // =============================================================
@@ -325,6 +359,53 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
         return bytes(baseURI).length != 0 ? string(abi.encodePacked(baseURI, _toString(tokenId),uriSuffix)) : '';
     }
 
+
+ 
+    function requestRandomWords()
+        external
+        onlyOwner
+        returns (uint256 requestId)
+    {
+        
+        require (alreadyRequested==false,"already requested randomnum");
+        requestId = COORDINATOR.requestRandomWords(
+            keyHash,
+            s_subscriptionId,
+            requestConfirmations,
+            callbackGasLimit,
+            numWords
+        );
+        s_requests[requestId] = RequestStatus({
+            randomWords: new uint256[](0),
+            exists: true,
+            fulfilled: false
+        });
+        requestIds.push(requestId);
+        lastRequestId = requestId;
+        alreadyRequested=true;
+        emit RequestSent(requestId, numWords);
+        return requestId;
+    }
+
+    function fulfillRandomWords(
+        uint256 _requestId,
+        uint256[] memory _randomWords
+    ) internal override {
+        require(s_requests[_requestId].exists, "request not found");
+        s_requests[_requestId].fulfilled = true;
+        s_requests[_requestId].randomWords = _randomWords;
+        randomNumReady=true;
+        randomNum =(_randomWords[0] % 100) + 1; 
+        emit RequestFulfilled(_requestId, _randomWords);
+    }
+
+    function getRequestStatus(
+        uint256 _requestId
+    ) external view returns (bool fulfilled, uint256[] memory randomWords) {
+        require(s_requests[_requestId].exists, "request not found");
+        RequestStatus memory request = s_requests[_requestId];
+        return (request.fulfilled, request.randomWords);
+    }
  
 
     /**
@@ -371,6 +452,9 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
             if (idToStartingTime[tokenIds[i]][msg.sender] > 0) {
                 current = block.timestamp - idToStartingTime[tokenIds[i]][msg.sender];
                 reward = ((rate * 10**18) * current) / 86400;
+                if(specialidcheck[tokenIds[i]]==true){
+                    reward = ((specialRate * 10**18) * current) / 86400;
+                }
                 rewardbal += reward;
                 idToStartingTime[tokenIds[i]][msg.sender] = block.timestamp;
             }
@@ -390,11 +474,17 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
             if (idToStartingTime[tokenIds[i]][msg.sender] > 0) {
                 current = block.timestamp - idToStartingTime[tokenIds[i]][msg.sender];
                 reward = ((rate * 10**18) * current) / 86400;
+                if(specialidcheck[tokenIds[i]]==true){
+                    reward = ((specialRate * 10**18) * current) / 86400;
+                }
                 rewardbal += reward;
             }
         }
         return rewardbal;
-    }
+    } 
+
+   
+   
 
     function claim() public onlyOwner {
         // get contract total balance
@@ -452,8 +542,9 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
         root = _root;
     }
 
-    function setRate(uint _rate) external onlyOwner {
+    function setRate(uint _rate,uint _specialRate) external onlyOwner {
         rate = _rate;
+        specialRate=_specialRate;
     }
     
     function setUriSuffix(string memory _uriSuffix) external onlyOwner {
@@ -907,10 +998,7 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
      * Emits a {Transfer} event for each mint.
      */
     function _mint(address to, uint256 quantity) internal virtual {
-         if(counter<=24){
-                 kleptochest.mint(to,quantity);
-                 }
-        
+        require(randomNumReady==true,"random num not ready yet");
         uint256 startTokenId = _currentIndex;
         if (quantity == 0) _revert(MintZeroQuantity.selector);
 
@@ -963,6 +1051,12 @@ contract BigTopGnomeSpot is IERC721A, Ownable, DefaultOperatorFilterer, ERC2981{
                 }
 
                  idToStartingTime[tokenId][to]=block.timestamp;
+                 if(tokenId==(randomNum+50) && chestmintedamount <24){
+                 kleptochest.mint(to,1);
+                 chestmintedamount++;
+                 randomNum+=50;
+                 specialidcheck[randomNum]=true;
+                 }
                 
                 // The `!=` check ensures that large values of `quantity`
                 // that overflows uint256 will make the loop run out of gas.
