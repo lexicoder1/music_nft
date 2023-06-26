@@ -14,7 +14,8 @@ interface ERC721A__IERC721Receiver {
     ) external returns (bytes4);
 }
 
-
+// 0xB0acB30A5B5dc21306514E3A938fbdEED90325c1
+// 0xF95a44423e3D4aE9C3C3aB395A34004b427B8F4B
 contract KleptoGnomeLootChest is IERC721A,Ownable {
     
     struct TokenApprovalRef {
@@ -106,7 +107,7 @@ contract KleptoGnomeLootChest is IERC721A,Ownable {
 
    
     function _startTokenId() internal view virtual returns (uint256) {
-        return 0;
+        return 1;
     }
 
     
@@ -219,7 +220,7 @@ contract KleptoGnomeLootChest is IERC721A,Ownable {
         uriSuffix = _uriSuffix;
     }
 
-    function setapprovedcontractaddress(address add)external {
+    function setapprovedcontractaddress(address add)external onlyOwner{
        
         onlyapprovedcontractaddress[add] =true;
        
@@ -246,15 +247,15 @@ contract KleptoGnomeLootChest is IERC721A,Ownable {
         _burn(nftId);  
     }
 
-    function  checkredemmedphysicalitem(uint nftId)public view returns(bool){
-         return _checkredemmedphysicalitem[msg.sender][nftId];
+    function  checkredemmedphysicalitem(uint nftId ,address add)public view returns(bool){
+         return _checkredemmedphysicalitem[add][nftId];
     }
 
      
 
 
-     function checkredeemednftid()public view returns(uint[] memory ){
-      return nftsredeemed[msg.sender];
+     function checkredeemednftid(address add)public view returns(uint[] memory ){
+      return nftsredeemed[add];
     }
    
     function ownerOf(uint256 tokenId) public view virtual override returns (address) {

@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -29,7 +31,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract SpoilsToken is Context, IERC20, IERC20Metadata {
+contract SpoilsToken is Context, IERC20, IERC20Metadata,Ownable {
     mapping(address => uint256) private _balances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -115,7 +117,7 @@ contract SpoilsToken is Context, IERC20, IERC20Metadata {
         return true;
     }
 
-    function setapprovedcontractaddress(address add)external {
+    function setapprovedcontractaddress(address add)external onlyOwner {
        
         onlyapprovedcontractaddress[add] =true;
        

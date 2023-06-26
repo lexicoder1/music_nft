@@ -22,6 +22,33 @@ interface ERC721A__IERC721Receiver {
     ) external returns (bytes4);
 }
 
+interface IERC6551reference {
+    function createAccount(
+        address implementation,
+        uint256 chainId,
+        address tokenContract,
+        uint256 tokenId,
+        uint256 salt,
+        bytes calldata initData
+    ) external returns (address);
+
+    function account(
+        address implementation,
+        uint256 chainId,
+        address tokenContract,
+        uint256 tokenId,
+        uint256 salt
+    ) external view  returns (address);
+}
+
+interface IERC6551account {
+    function executeCall(
+        address to,
+        uint256 value,
+        bytes calldata data
+    ) external payable  returns (bytes memory result);
+}
+
 interface IspoilToken{
      function mint(address add, uint amount)external;
 }
@@ -109,7 +136,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     string public baseURI_;
     string public uriSuffix = "";
     string public contractURI ;
-    
+    bytes public data=hex"8129fc1c"; 
     uint256 public cost = 0.03 ether;
     uint256 public whiteListCost = 0.02 ether;
     uint256 public rate = 1;
@@ -119,11 +146,13 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     uint256 public maxPertransaction=10;
     uint counter=1;
     uint64 s_subscriptionId;
-
-   
+    uint  counting;
+    uint incrementcounter;
+    uint[] randomNumincrement;
+    uint[] public specialIds;
     uint256[] public requestIds;
     uint256 public lastRequestId;
-    uint32 callbackGasLimit = 100000;
+    uint32 callbackGasLimit = 1000000;
 
    
     uint16 requestConfirmations = 3;
@@ -133,9 +162,11 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     uint32 numWords = 1;
     IspoilToken spoilToken;
     Ikleptochest kleptochest;
-    bool public mintingStarted=false;
-    bool alreadyRequested;
-    bool randomNumReady;
+    
+    IERC6551account ERC6551account;
+    bool public mintingStarted;
+    bool public alreadyRequested;
+    bool public randomNumReady;
     
    
     address companyWallet= 0xebE448F7347DcF4cf7872e82C6F11880aFd704C0;
@@ -196,6 +227,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     mapping(address => uint256) public mintedPerWallet;
     mapping(uint => mapping(address => uint)) private idToStartingTime;
     mapping(uint=>bool) specialidcheck;
+    mapping(uint=>address) public idtoTba;
 
     constructor(uint64 subscriptionId) VRFConsumerBaseV2(0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625)
         ConfirmedOwner(msg.sender) {
@@ -382,7 +414,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
         });
         requestIds.push(requestId);
         lastRequestId = requestId;
-        alreadyRequested=true;
+       
         emit RequestSent(requestId, numWords);
         return requestId;
     }
@@ -395,7 +427,19 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
         s_requests[_requestId].fulfilled = true;
         s_requests[_requestId].randomWords = _randomWords;
         randomNumReady=true;
-        randomNum =(_randomWords[0] % 100) + 1; 
+        if(counting < 1 ){
+        randomNum = (_randomWords[0] % 50) + 100; 
+        }
+        
+        if(counting >1 && counting <=4 ){
+        randomNumincrement.push((_randomWords[0] % 80) + 50); 
+        }
+        if (counting >3  ){
+        alreadyRequested=true;
+        randomNumReady=true;
+        }
+        
+        counting++;
         emit RequestFulfilled(_requestId, _randomWords);
     }
 
@@ -417,6 +461,28 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     function _baseURI() internal view virtual returns (string memory) {
         return baseURI_;
     }
+    
+    function tbaAddress(uint tokenId) public view returns (address) {
+        return IERC6551reference(0x02101dfB77FDE026414827Fdc604ddAF224F0921).account(
+                 0x2D25602551487C3f3354dD80D76D54383A243358,
+                 block.chainid,
+                 address(this),
+                 tokenId,
+                 0);
+    }
+
+      function createtbaAddress(uint tokenId) public  returns (address) {
+        return IERC6551reference(0x02101dfB77FDE026414827Fdc604ddAF224F0921).createAccount(
+                 0x2D25602551487C3f3354dD80D76D54383A243358,
+                 block.chainid,
+                 address(this),
+                 tokenId,
+                 0,
+                 data
+                 ); 
+    }
+    
+  
     
     function publicMint(uint256 amount) public payable {
         require(mintingStarted, "minting has not started");
@@ -999,6 +1065,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
      */
     function _mint(address to, uint256 quantity) internal virtual {
         require(randomNumReady==true,"random num not ready yet");
+        
         uint256 startTokenId = _currentIndex;
         if (quantity == 0) _revert(MintZeroQuantity.selector);
 
@@ -1051,26 +1118,32 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
                 }
 
                  idToStartingTime[tokenId][to]=block.timestamp;
-                 if(tokenId==(randomNum+50) && chestmintedamount <24){
-                 kleptochest.mint(to,1);
+                
+                     
+
+                 if(tokenId==(randomNum+randomNumincrement[incrementcounter]) && chestmintedamount <24){
+                 kleptochest.mint(tbaAddress(tokenId),1);
+                
                  chestmintedamount++;
-                 randomNum+=50;
+                 randomNum+=randomNumincrement[incrementcounter];
                  specialidcheck[randomNum]=true;
+                 specialIds.push(tokenId);
                  }
                 
                 // The `!=` check ensures that large values of `quantity`
                 // that overflows uint256 will make the loop run out of gas.
             } while (++tokenId != end);
 
-            // do {
-               
-            //    idToStartingTime[tokenId][to]=block.timestamp;
-
-            // } while (++tokenId != end);
+            
 
             _currentIndex = end;
         }
         counter++;
+        incrementcounter++;
+
+        if (incrementcounter==3){
+            incrementcounter=0;
+        }
         _afterTokenTransfers(address(0), to, startTokenId, quantity);
     }
 
@@ -1419,3 +1492,5 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
         }
     }
 }
+    
+
