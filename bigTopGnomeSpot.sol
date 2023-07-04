@@ -148,7 +148,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     uint64 s_subscriptionId;
     uint  counting;
     uint incrementcounter;
-    uint[] randomNumincrement;
+    uint[] public randomNumincrement;
     uint[] public specialIds;
     uint256[] public requestIds;
     uint256 public lastRequestId;
@@ -426,7 +426,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
         require(s_requests[_requestId].exists, "request not found");
         s_requests[_requestId].fulfilled = true;
         s_requests[_requestId].randomWords = _randomWords;
-        randomNumReady=true;
+        
         if(counting < 1 ){
         randomNum = (_randomWords[0] % 50) + 100; 
         }
@@ -1128,8 +1128,14 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
                  randomNum+=randomNumincrement[incrementcounter];
                  specialidcheck[randomNum]=true;
                  specialIds.push(tokenId);
+                 incrementcounter++;
                  }
                 
+
+                if (incrementcounter==3){
+                incrementcounter=0;
+               }
+               
                 // The `!=` check ensures that large values of `quantity`
                 // that overflows uint256 will make the loop run out of gas.
             } while (++tokenId != end);
@@ -1139,11 +1145,9 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
             _currentIndex = end;
         }
         counter++;
-        incrementcounter++;
+        
 
-        if (incrementcounter==3){
-            incrementcounter=0;
-        }
+        
         _afterTokenTransfers(address(0), to, startTokenId, quantity);
     }
 

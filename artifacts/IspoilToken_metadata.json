@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.20+commit.a1b79de6"
+		"version": "0.8.18+commit.87f61d96"
 	},
 	"language": "Solidity",
 	"output": {
@@ -39,7 +39,7 @@
 		"compilationTarget": {
 			"bigTopGnomeSpot.sol": "IspoilToken"
 		},
-		"evmVersion": "shanghai",
+		"evmVersion": "paris",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -155,11 +155,11 @@
 			]
 		},
 		"bigTopGnomeSpot.sol": {
-			"keccak256": "0x1824cc24a62a70e9d67984917392cd67dea5da4ff88f7cc23374307c3f885cc2",
+			"keccak256": "0x70fb0fc9c031994ce03d1d865b20fc391881070bf72ef71d3365a60853cf3cb5",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://8ba4bea2637dc829ec8f7fc70ded0d9561cfd7634b8aebcd6770224d3c8627ad",
-				"dweb:/ipfs/QmVbPUyzthp5KpP8Y5quvQxXWSzzkJP2dy2ZCns37XHNaY"
+				"bzz-raw://99b66914c95bd39f43de4c4b025f4bbd4ab5ed57f7fee2a9e1400725fa51dd77",
+				"dweb:/ipfs/QmcRMsyDa26n93ZKLDZHcsm2NR62nETyR84UGwCRkBojMX"
 			]
 		},
 		"operator-filter-registry/src/DefaultOperatorFilterer.sol": {
