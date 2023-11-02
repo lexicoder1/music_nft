@@ -99,7 +99,7 @@ contract KleptoGnomeLootChest is IERC721A,Ownable {
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
   
-    constructor(string memory name_, string memory symbol_) {
+    constructor(string memory name_, string memory symbol_ ,address _owner) Ownable(_owner) {
         _name = name_;
         _symbol = symbol_;
         _currentIndex = _startTokenId();

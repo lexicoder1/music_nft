@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -51,7 +51,7 @@ contract SpoilsToken is Context, IERC20, IERC20Metadata,Ownable {
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_ ,uint amount) {
+    constructor(string memory name_, string memory symbol_ ,uint amount,address _owner) Ownable(_owner) {
         _name = name_;
         _symbol = symbol_;
         _mint(msg.sender,amount);

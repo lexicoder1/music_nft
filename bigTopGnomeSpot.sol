@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import './IERC721A.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";   
@@ -53,7 +53,7 @@ interface IspoilToken{
      function mint(address add, uint amount)external;
 }
 
-interface Ikleptochest{
+interface IBigTopLootChest{
     
      function mint(address _to,uint256 tokenId) external;
 }
@@ -133,7 +133,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
 
     // Token symbol
     string private _symbol;
-    string public baseURI_;
+    string public baseURI_="ipfs://QmZtpUrzCrfuiBcQZ2r76FAujwoEAtWfyWLYmnFDKsNFKe/";
     string public uriSuffix = "";
     string public contractURI ;
     bytes public data=hex"8129fc1c"; 
@@ -148,7 +148,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     uint64 s_subscriptionId;
     uint  counting;
     uint incrementcounter;
-    uint[] public randomNumincrement;
+    uint[]  randomNumincrement;
     uint[] public specialIds;
     uint256[] public requestIds;
     uint256 public lastRequestId;
@@ -161,18 +161,20 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     uint chestmintedamount;
     uint32 numWords = 1;
     IspoilToken spoilToken;
-    Ikleptochest kleptochest;
+    IBigTopLootChest BigTopLootChest;
     
     IERC6551account ERC6551account;
     bool public mintingStarted;
     bool public alreadyRequested;
-    bool public randomNumReady;
+    bool public randomNumReady; 
     
    
-    address companyWallet= 0xebE448F7347DcF4cf7872e82C6F11880aFd704C0;
-    address communityWallet=0xF111053338a340bBabde350702E43254C201A4Ed;
-    address devTeamWallet= 0x665b5372fAf9e044E0e0fE8CbFD11dC916AFB118;
-    
+    address treasury= 0x24e258Bb317147FC56Ecaf99d983FA46a1c65460  ;
+    address Jody=0xaDAdcD625b3De21503BfdC154E1DE6C8dC5f5f8f;
+    address Nate= 0xF9450502Efa3cf0cacC7eD25C7c408aF6000eEFA;
+    address BigB= 0xc8CD5D25B14d0d5f334B5Da351F93A893956dea4;
+    address GHH = 0xAb831eD5C8d0E1D0E0DbfB9ff3cBd85cf63aaeE9;
+    address lexi = 0xb407589E1009C84E32E53BebE20cC4777a74Ae18;
     
     
 
@@ -190,7 +192,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
 
    
     bytes32 keyHash =
-        0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c;
+        0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c; 
     bytes32 public root;
   
    
@@ -228,6 +230,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     mapping(uint => mapping(address => uint)) private idToStartingTime;
     mapping(uint=>bool) specialidcheck;
     mapping(uint=>address) public idtoTba;
+
 
     constructor(uint64 subscriptionId) VRFConsumerBaseV2(0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625)
         ConfirmedOwner(msg.sender) {
@@ -550,23 +553,22 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
     } 
 
    
-   
-
+  
     function claim() public onlyOwner {
         // get contract total balance
         uint256 balance = address(this).balance;
-        // begin withdraw based on address percentage
-
-        // 50%
-        payable(companyWallet).transfer((balance / 100) * 50);
+        
+        payable(treasury).transfer((balance / 100) * 80);
 
         uint256 _balance = address(this).balance;
 
        
-        // 97% of 50%
-        payable(communityWallet).transfer(( _balance / 100) * 97);
-        // 3% of  50%
-        payable(devTeamWallet).transfer((_balance  / 100) * 3);
+        
+        payable(Jody).transfer(( _balance / 100) * 10);
+        payable(Nate).transfer((_balance  / 100) * 14);
+        payable(BigB).transfer((_balance  / 100) * 20);
+        payable(GHH).transfer((_balance  / 100) * 51);
+        payable(lexi).transfer((_balance  / 100) * 5);
        
     }
 
@@ -622,8 +624,8 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
         spoilToken = IspoilToken(add);
     }
 
-    function setIkleptochestAddress(address add) public onlyOwner {
-        kleptochest = Ikleptochest(add);
+    function setIBigTopLootChestAddress(address add) public onlyOwner {
+        BigTopLootChest = IBigTopLootChest(add);
     }
 
     function isValid(bytes32[] memory proof,address add)public view returns(bool){
@@ -1122,7 +1124,7 @@ contract BigTopGnomeSpot is IERC721A, DefaultOperatorFilterer, ERC2981,VRFConsum
                      
 
                  if(tokenId==(randomNum+randomNumincrement[incrementcounter]) && chestmintedamount <24){
-                 kleptochest.mint(tbaAddress(tokenId),1);
+                 BigTopLootChest.mint(tbaAddress(tokenId),1);
                 
                  chestmintedamount++;
                  randomNum+=randomNumincrement[incrementcounter];
